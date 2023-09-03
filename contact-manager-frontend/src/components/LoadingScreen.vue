@@ -40,6 +40,11 @@
             transform: rotate(0deg);
         }
 
+        50%{
+            transform: rotate(180);
+            border: #000;
+        }
+
         100%{
             transform: rotate(360deg);
         }

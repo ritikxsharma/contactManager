@@ -1,51 +1,57 @@
 <template>
-    <div class="contacts">
-        <div v-if="isAdd" class="addScreen">
-            <AddContact @close-add="closeAdd"></AddContact>
-        </div>
-       
+    <div class="contacts">     
+        <h2>Contacts</h2>
         <nav> 
             <input v-model="searchQuery" type="text" placeholder="Search..">
-            <button @click="isAdd = true">Add Contact</button>
+            <!-- <button @click="showAdd = true">Add Contact</button> -->
         </nav>
         <div class="contacts-wrapper">
-            <div v-for="(contact, index) in filteredContacts " :key="contact" :class="getBackground(index)">
+            <div v-for="contact in filteredContacts" :key="contact" >
                 <ul>
                     <li>{{ contact.name }}</li>
                     <li>{{ contact.contactNumber }}</li>
                 </ul>
+                <button @click="showUpdateContactForm(contact)" id="update">Update</button>
                 <button @click="deleteContact(contact._id)" id="delete">Delete</button>
             </div>
         </div>
 
-        
+        <div v-if="showUpdate" class="addScreen">
+            <UpdateContact :contact = "selectedContact" @contact-updated = "updateContact" @close-update-form = "showUpdate = false" ></UpdateContact>
+        </div>
     </div>
 </template>
 
 
 <script>
-
     import {mapGetters} from "vuex"
     import AddContact from "./AddContact.vue"
+    import UpdateContact from "./UpdateContact.vue"
 
     export default{
         name: "UserContacts",
         components:{
-            AddContact
+            AddContact,
+            UpdateContact
+        },
+
+        props:{
+            userId: String,
+            contacts: Array
         },
 
         data(){
             return{
                 searchQuery:"",
-                contacts: [],
-                isAdd: false,
+                showUpdate: false,
+                selectedContact: {}
             }
         },
 
         computed:{
 
-            ...mapGetters(['getToken']),
-
+            ...mapGetters(['getToken', 'getAllUsers']),
+            
             filteredContacts(){
         
                 if (this.searchQuery.trim().length == 0) {
@@ -53,52 +59,25 @@
                 }
 
                 return this.contacts.filter(contact => contact.name.replace(/\s+/g, '').toLowerCase().match(this.searchQuery.toLowerCase().trim()))
-
             }  
-        },
-
-        mounted(){
-            this.getContacts()
         },
 
         methods:{
 
-            async getContacts(){
-                try{
-                    const res = await fetch("http://localhost:5001/api/contacts", {
-                        method: 'GET',
-                        headers:{
-                            'Content-Type': "application/json",
-                            Authorization: `Bearer ${this.getToken}`
-                        },
-
-                    })
-                    const data = await res.json()
-                    this.contacts = data
-                    console.log(this.contacts);
-                    
-                }catch(error){
-                    console.log("Error:", error);
-                }
-            },
-
-            closeAdd(){
-                this.isAdd = !this.isAdd
-                this.getContacts()
-            },
-
             async deleteContact(contactId){
                 try {
+                    console.log(contactId);
+                    console.log(this.getToken(this.$route.params.userId));
                     const res = await fetch(`http://localhost:5001/api/contacts/${contactId}`, {
                         method: "DELETE",
                         headers:{
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${this.getToken}`
+                            Authorization: `Bearer ${this.getToken(this.$route.params.userId)}`
                         },
                     })
 
                     if (res.ok) {
-                        this.getContacts()
+                        this.$emit('contact-delete', contactId)
                     }else{
                         alert("Sorry contact cannot be deleted.Pleasse try again...")
                     }
@@ -108,9 +87,16 @@
                 }
             },
 
-            getBackground(index){
-                return index%2 == 0 ? 'bg-1' : 'bg-2'
-            }
+            showUpdateContactForm(contact){
+                this.showUpdate = true
+                this.selectedContact = contact
+            },
+
+            updateContact(updatedContact){
+                this.showUpdate = false
+                this.$emit('contact-updated', updatedContact)
+                
+            },
         }
     }
 </script>
@@ -118,28 +104,29 @@
 
 <style scoped>
 
-    *{
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
     .contacts{
         display: flex;
         flex-direction: column;
-        background-color: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+    }
+
+    h2{
+        text-align: center;
+        margin-bottom: 10px;
     }
 
     nav{
         display: flex;
-        justify-content: center;
         align-items: center;
-        background-color: #00000045;
+        background-color: #333;
         padding: 1rem;
+        
     }
 
     nav > input{
-        margin: 0;
+        width: 50%;
         padding: 14px;
     }
 
@@ -150,7 +137,6 @@
 
     .contacts-wrapper{
         overflow-y: scroll;
-        max-height: 50rem;
     }
 
     .contacts-wrapper > div{
@@ -160,15 +146,9 @@
         padding: 1rem;
         border-radius: 0.5rem;
         font-size: larger;
+        border: 2px solid #ccc;
     }
 
-    .bg-1{
-        background-color: rgb(225, 225, 248);
-    }
-
-    .bg-2{
-        background-color: rgb(247, 235, 235);
-    }
 
     ul{
         list-style-type: none;
@@ -187,11 +167,12 @@
     }
 
     button{
-        width: 5rem;
-        height: 4rem;
+        position: relative;
+        width: 6rem;
+        height: 3rem;
         margin: 0.2rem;
         padding: 0.2rem;
-        border-radius: 2rem;
+        border-radius: 20px;
         border: 0;
     }
 

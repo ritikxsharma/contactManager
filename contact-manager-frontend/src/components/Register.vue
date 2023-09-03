@@ -5,8 +5,20 @@
             <input v-model="username" type="text" placeholder="username"><br>
             <input v-model="email" type="text" placeholder="email"><br>
             <input v-model="password" type="text" placeholder="password"><br>
-            <button type="submit">register</button>
+            <div class="register">
+                <button type="submit">register</button>
+                <div v-if="registerFailed" class="registerFailed">
+                    {{message}}
+                </div>
+            </div>
+            <hr>
+            <div class="login">
+                Already have a account? <button v-on:click ="$emit('show-login')">Sign in</button>
+            </div>
         </form>       
+
+
+
     </div>
 </template>
 
@@ -18,7 +30,9 @@
             return{
                 username: "",
                 email: "",
-                password: ""
+                password: "",
+                message: "",
+                registerFailed: false
             }
         },
 
@@ -43,7 +57,6 @@
                     const data = await res.json()
                     if (res.ok) {
                         console.log(data);
-
                         alert("User Registered Successfully, Now redirecting to login page")
                         setTimeout(2000)
                         this.$router.push('login')
@@ -52,7 +65,9 @@
                     }
 
                 } catch (error) {
-                    console.log("Registeration Failed: ");
+                    this.message = "Registeration Failed"
+                    this.registerFailed = true
+                    console.log("Registeration Failed: ", error);
                 }
             }
         }
@@ -60,18 +75,15 @@
 </script>
 
 <style scoped>
-    .container{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 50rem;
-    }
-
     form{
+        display: flex;
+        flex-direction: column;
+        text-align: center;
         background-color: white;
         padding: 5rem;
         box-shadow: 10px 10px #000;
         border-radius: 5px;
+        min-width: 500px;
     }
 
     input{
@@ -79,6 +91,8 @@
         border: 0;
         border-bottom: 1px solid #000;
         padding: 0.5rem;
+        height: 55px;
+        width: 100%;
     }
 
     input:focus{
@@ -90,20 +104,37 @@
         transition: color 0.5s;
     }
 
-
-    button{
-        margin: 1rem;
-        width: 10rem;
-        height: 2rem;
-        background-color: lightskyblue;
-        border: 0;
-        border: 1px solid #fff;
-        border-radius: 5px;
-        cursor: pointer;
+    .register{
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
     }
 
-    button:hover{
-        transform: scale(1.2);
-        transition: transform 0.4s ;
+    .register button{
+        border: none;
+        background: #1877f2;
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 500;
+        transition: 0.2s ease;
     }
+
+
+    .login{
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 25px;
+    }
+
+    .login button{
+        padding: 15px 20px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: 0.2s ease;
+        background: #42b72a;
+        border: none;
+        border-radius: 20px;
+    }
+
 </style>

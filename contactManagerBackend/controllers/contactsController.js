@@ -9,7 +9,7 @@ const getContacts = asyncHandler(async (req, res) => {
     res.status(200).json(contacts)
 })
 
-// @desc Create all contacts
+// @desc Create contact
 // @route POST /api/contacts/
 // @access private
 const createContact = asyncHandler(async (req, res) => {
@@ -65,6 +65,7 @@ const deleteContact = asyncHandler(async (req, res) => {
     console.log("Contact Removed");
 }
 )
+
 // @desc Update contact with id
 // @route POST /api/contacts/:id
 // @access private

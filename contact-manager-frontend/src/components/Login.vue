@@ -2,13 +2,22 @@
     <div class="container">
         <form @submit.prevent="login">
             <h2>LOGIN</h2>
-            <input v-model="email" type="text" placeholder="email"><br>
-            <input v-model="password" type="password" placeholder="password"><br>
-            <button type="submit">login</button>
+            <input v-model="email" type="text" placeholder="email" required><br>
+            <input v-model="password" type="password" placeholder="password" required><br>
 
-            <div v-if="showFailed" class="loginFailed">
-                Entered email or password is incorrect!!!
+            <div class="login">
+                <button type="submit">login</button>
+                <div v-if="showFailed" class="loginFailed">
+                    {{message}}
+                </div>
             </div>
+            
+            <hr>
+
+            <div class="register">
+                <button v-on:click="$emit('show-register')" >Create new account</button>
+            </div>
+
 
         </form>
         <div v-if="showLoading" class="loading-screen">
@@ -30,8 +39,9 @@
             return{
                 email: "",
                 password: "",
+                message: "",
                 showLoading: false,
-                showFailed: false
+                showFailed:  false
             }
         },
         methods:{
@@ -53,61 +63,63 @@
                     })
 
                     const data = await res.json()
-                    console.log(res.ok);
+                    console.log(data.user, data.token);
                     if(res.ok){
-                        const token = data.accessToken
-                        await this.getUserInfo(token)
+                        const userData = Object.assign(data.user, {token: data.token})
+                        this.$store.dispatch('ADD_USER', userData)
                         setTimeout(() => {
                             this.showLoading = false
-                            this.$router.push('user') 
+                            this.$router.push({name: 'user', params: {userId: userData._id}}) 
                         }, 2000); 
-                                      
+                        
                     }else{
                         this.showFailed = true
                         this.showLoading = false
+                        this.message = "Email id or password is incorrect"
                         console.log("Login Failed: ", data.msg);
                     }
 
 
                 }catch(error){
+                    this.showLoading = false
+                    this.showFailed = true
+                    this.message = "Failed to login"
                     console.error("login failed : ", error);
                 }
             },
 
-            async getUserInfo(token){
-                try{
-                    const res = await fetch("http://localhost:5001/api/users/current",{
-                        headers:{
-                            Authorization: `Bearer ${token}`
-                        }
-                    })
+            // async getUserInfo(token){
+            //     try{
+            //         const res = await fetch("http://localhost:5001/api/users/current",{
+            //             headers:{
+            //                 Authorization: `Bearer ${token}`
+            //             }
+            //         })
 
-                    var userData = await res.json();
-                    userData = Object.assign(userData, {token: token})
-                    console.log('User info : ', userData);
-                    this.$store.dispatch('setUser', userData)
+            //         var userData = await res.json();
+            //         userData = Object.assign(userData, {token: token})
+            //         console.log('User info : ', userData);
+            //         this.$store.dispatch('ADD_USER', userData)
 
-                }catch(error){
-                    console.log("Failed to fetch user info: ", error);
-                }
-            }
+            //     }catch(error){
+            //         console.log("Failed to fetch user info: ", error);
+            //     }
+            // },
         }
     }
 </script>
 
 <style scoped>
-    .container{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 50rem;
-    }
 
     form{
+        display: flex;
+        flex-direction: column;
+        text-align: center;
         background-color: white;
         padding: 5rem;
         box-shadow: 10px 10px #000;
         border-radius: 5px;
+        min-width: 500px;
     }
 
     input{
@@ -115,6 +127,8 @@
         border: 0;
         border-bottom: 1px solid #000;
         padding: 0.5rem;
+        height: 55px;
+        width: 100%;
     }
 
     input:focus{
@@ -126,25 +140,40 @@
         transition: color 0.5s;
     }
 
-
-    button{
-        margin: 1rem;
-        width: 10rem;
-        height: 2rem;
-        background-color: lightskyblue;
-        border: 0;
-        border: 1px solid #fff;
-        border-radius: 5px;
-        cursor: pointer;
+    .login{
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
     }
 
-    button:hover{
-        transform: scale(1.2);
-        transition: transform 0.4s ;
+    .login button{
+        border: none;
+        background: #1877f2;
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 0 20px 0 20px;
     }
 
     .loginFailed{
         font-size: large;
+    }
+
+    .register{
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 25px;
+    }
+
+    .register button{
+        padding: 15px 20px;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: 0.2s ease;
+        background: #42b72a;
+        border-radius: 20px;
     }
 
     .loading-screen {

@@ -31,7 +31,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 expiresIn: "15m"
             })
 
-        res.status(200).json({ accessToken })
+        res.status(200).json({"user": user, "token": accessToken })
         console.log("Login successfull");
     }
     else {
@@ -78,6 +78,16 @@ const currentUser = asyncHandler(async (req, res) => {
     res.status(200).json(req.user)
 })
 
+//@desc Logout user
+//@route /api/users/logout
+//@access private
+const tokenBlacklist = new Set()
+const logoutUser = asyncHandler(async(req, res) =>{
+    const token = req.headers.authorization || req.headers.Authorization
+    tokenBlacklist.add(token)
+    res.status(200).json({message: "Logout successful"})
+})
 
-module.exports = { loginUser, registerUser, currentUser }
+
+module.exports = { loginUser, registerUser, currentUser, logoutUser }
 

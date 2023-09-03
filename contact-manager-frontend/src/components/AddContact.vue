@@ -1,5 +1,5 @@
 <template>
-    <div class="loading-screen">
+    <div class="add-screen">
         <form @submit.prevent="addContact">
             <div @click="closeForm" class="close">x</div>
             <h2 style="color: #000;">ADD CONTACT</h2>
@@ -42,13 +42,13 @@
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${this.getToken}`
+                            Authorization: `Bearer ${this.getToken(this.$route.params.userId)}`
                         },
                         body: JSON.stringify(newContact)
                     })
 
                     if(res.ok){
-                        this.$emit('close-add')
+                        this.$emit('close-add', newContact)
                     }else{
                         alert("Sorry failed to add contact")
                     }
@@ -57,7 +57,7 @@
                     this.contactNumber = ""
 
                 } catch (error) {
-                    
+                    console.log("Error: ", error);
                 }
             },
 
@@ -70,7 +70,7 @@
 </script>
 
 <style scoped>
-    .loading-screen{
+    .add-screen{
         position: fixed;
         width: 100%;
         height: 100%;
@@ -83,6 +83,9 @@
     }
 
     form{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         background-color: white;
         padding: 5rem;
         box-shadow: 10px 10px #000;
@@ -90,7 +93,6 @@
     }
 
     .close {
-        float: right;
         font-size: 3rem;
         color: #000;
         cursor: pointer;
@@ -112,11 +114,10 @@
         transition: color 0.5s;
     }
 
-
     button{
         margin: 1rem;
         width: 10rem;
-        height: 2rem;
+        height: 3rem;
         background-color: lightskyblue;
         border: 0;
         border: 1px solid #fff;

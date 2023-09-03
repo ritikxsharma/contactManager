@@ -1,5 +1,5 @@
 <template>
-    <div  class="loading-screen">
+    <div  class="update-screen">
         <form @submit.prevent="updateContact">
             <div @click="closeForm" class="close">x</div>
             <h2 style="color: #000;">ADD CONTACT</h2>
@@ -23,7 +23,9 @@
 
         data(){
             return{
-                updatedContact: {...this.contact}
+                updatedContact:{
+                    ...this.contact
+                }
             }
         },
 
@@ -34,19 +36,18 @@
         methods:{
             async updateContact(){
                 try {
-                    console.log(this.updatedContact);
-                    const res = await fetch(`http://localhost:5001/api/contacts/${this.updatedContact_id}`, {
+                    const res = await fetch(`http://localhost:5001/api/contacts/${this.updatedContact._id}`, {
                         method: "PUT",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${this.getToken}`
+                            Authorization: `Bearer ${this.getToken(this.$route.params.userId)}`
                         },
                         body: JSON.stringify(this.updatedContact)
                     })
 
 
                     if(res.ok){
-                        this.$emit('close-update')
+                        this.$emit('contact-updated', this.updatedContact)
                     }else{
                         alert("Sorry failed to update contact")
                     }
@@ -57,15 +58,15 @@
             },
 
             closeForm(){
-                this.$emit('close-update')
-            }
+                this.$emit('close-update-form')
+            },
         }
     }
 
 </script>
 
 <style scoped>
-    .loading-screen{
+    .update-screen{
         position: fixed;
         width: 100%;
         height: 100%;
